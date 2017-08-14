@@ -1,0 +1,19 @@
+Package: PregnancyAlgorithm
+Type: Package
+Title: Pregnancy Algorithm
+Version: 0.1.0
+Author: Amy Matcho [aut, cre],
+        Chris Knoll [aut, cre],
+        Ajit Londhe [aut]
+Maintainer: Ajit Londhe <alondhe2@its.jnj.com>
+Description: Creates pregnancy episodes for a CDMv5.x datamodel
+License: Apache License, Version 2.0
+LazyData: TRUE
+Depends:
+    SqlRender,
+    DatabaseConnector (>= 2.0.0),
+    stringr
+Imports:
+    aws.s3
+Roxygen: list(wrap = TRUE)
+RoxygenNote: 6.0.1

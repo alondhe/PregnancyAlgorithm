@@ -1,0 +1,8 @@
+gest_est_id,category,preterm,postterm,fullterm,nodata
+1,LB,245,285,280,280
+2,SB,196,285,280,196
+3,DELIV,245,285,280,280
+4,TRO,56,56,56,56
+5,ECT,56,56,56,56
+6,AB,70,70,70,70
+7,SA,70,70,70,70

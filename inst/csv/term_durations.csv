@@ -1,0 +1,8 @@
+category,max_term,min_term,retry
+LB,301,161,28
+SB,301,100,28
+DELIV,301,140,28
+TRO,365,42,14
+ECT,84,42,14
+AB,168,42,14
+SA,139,28,14
