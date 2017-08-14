@@ -38,36 +38,24 @@ init <- function(connectionDetails, resultsDatabaseSchema, useMppUpload = FALSE)
 {
   connection <- DatabaseConnector::connect(connectionDetails)
 
-  initSql <- SqlRender::loadRenderTranslateSql(sqlFilename = "initTables.sql", 
+  sql <- SqlRender::loadRenderTranslateSql(sqlFilename = "initTables.sql", 
                                                packageName = "PregnancyAlgorithm", 
                                                dbms = connectionDetails$dbms,
                                                resultsDatabaseSchema = resultsDatabaseSchema)
   
-  DatabaseConnector::executeSql(connection = connection, sql = initSql)
+  DatabaseConnector::executeSql(connection = connection, sql = sql)
   if (useMppUpload)
   {
     if (connectionDetails$dbms == "redshift")
     {
-      # For Redshift fast inserts, requires S3 and cloudyr/aws.s3 library
-      for (file in list.files(path = paste(system.file(package = 'PregnancyAlgorithm'), "csv/", sep = "/"), 
-                              full.names = TRUE))
+      if (checkAwsS3Connection())
       {
-        aws.s3::put_object(file = file, 
-                           headers = list("x-amz-server-side-encryption" = Sys.getenv("AWS_SSE_TYPE")), 
-                           object = paste(Sys.getenv("AWS_OBJECT_KEY"), basename(file), sep = "/"), 
-                           bucket = Sys.getenv("AWS_BUCKET_NAME"))
+        bulkUploadToRedshift()
       }
-
-      initSql <- SqlRender::loadRenderTranslateSql(sqlFilename = "mpp/redshift/copy.sql", 
-                                                   packageName = "PregnancyAlgorithm", 
-                                                   dbms = connectionDetails$dbms,
-                                                   resultsDatabaseSchema = resultsDatabaseSchema, 
-                                                   s3RepoName = Sys.getenv("AWS_BUCKET_NAME"), 
-                                                   pathToFiles = Sys.getenv("AWS_OBJECT_KEY"),
-                                                   awsAccessKey = Sys.getenv("AWS_ACCESS_KEY_ID"), 
-                                                   awsSecretAccessKey = Sys.getenv("AWS_SECRET_ACCESS_KEY"))
-      DatabaseConnector::executeSql(connection = connection, sql = initSql)
-
+      else
+      {
+        stop("Cannot bulk upload to Redshift, S3 credentials not set properly. Please set S3 credentials or set useMppUpload to FALSE.")
+      }
     }
     else if (Sys.info()["sysname"] == 'Windows' & connectionDetails$dbms == "pdw")
     {
@@ -96,11 +84,11 @@ init <- function(connectionDetails, resultsDatabaseSchema, useMppUpload = FALSE)
   }
   else
   {
-    initSql <- SqlRender::loadRenderTranslateSql(sqlFilename = "inserts.sql", 
+    sql <- SqlRender::loadRenderTranslateSql(sqlFilename = "inserts.sql", 
                                                  packageName = "PregnancyAlgorithm", 
                                                  dbms = connectionDetails$dbms,
                                                  resultsDatabaseSchema = resultsDatabaseSchema)
-    DatabaseConnector::executeSql(connection = connection, sql = initSql)
+    DatabaseConnector::executeSql(connection = connection, sql = sql)
   }
 
   DatabaseConnector::disconnect(connection)
@@ -119,13 +107,13 @@ clean <- function(connectionDetails, resultsDatabaseSchema)
 {
   connection <- DatabaseConnector::connect(connectionDetails)
   # Create tables that exist once per server
-  initSql <- SqlRender::loadRenderTranslateSql(sqlFilename = "clean.sql", 
+  sql <- SqlRender::loadRenderTranslateSql(sqlFilename = "clean.sql", 
                                                packageName = "PregnancyAlgorithm", 
                                                dbms = connectionDetails$dbms,
                                                resultsDatabaseSchema = resultsDatabaseSchema)
   
-  DatabaseConnector::executeSql(connection, initSql)
-  DatabaseConnector::disconnect(connection)
+  DatabaseConnector::executeSql(connection = connection, sql = sql)
+  DatabaseConnector::disconnect(connection = connection)
   writeLines("Pregnancy algorithm tables removed");
 }
 
