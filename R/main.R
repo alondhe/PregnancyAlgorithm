@@ -70,7 +70,7 @@ init <- function(connectionDetails, resultsDatabaseSchema, useMppUpload = FALSE)
         #call command line
         command <- paste0('"', Sys.getenv("DWLOADER_PATH"),'" -M append -b 2000000 ',
                           '-i ', '"', file, '"', ' -T ', qName,' -R ', getwd(), '/dwloaderLog.txt ',
-                          '-t "," -r \r\n -D "yyyy-mm-dd" -E ',
+                          '-t "," -r \r\n -fh 1 -D "yyyy-mm-dd" -E ',
                           '-S ',connectionDetails$server,  #(S is connection)
                           ifelse(!is.null(connectionDetails$user), paste0(' -U ',connectionDetails$user),' -W'),
                           ifelse(!is.null(connectionDetails$password), paste0(' -P ',connectionDetails$password),'')

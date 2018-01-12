@@ -10,7 +10,7 @@ bulkUploadToRedshift <- function ()
   for (file in list.files(path = paste(system.file(package = 'PregnancyAlgorithm'), "csv/", sep = "/"), 
                           full.names = TRUE))
   {
-    aws.s3::put_object(file = file, 
+    aws.s3::put_object(file = file, check_region = F,
                        headers = list("x-amz-server-side-encryption" = Sys.getenv("AWS_SSE_TYPE")), 
                        object = paste(Sys.getenv("AWS_OBJECT_KEY"), basename(file), sep = "/"), 
                        bucket = Sys.getenv("AWS_BUCKET_NAME"))
