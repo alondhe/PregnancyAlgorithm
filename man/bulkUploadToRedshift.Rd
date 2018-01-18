@@ -4,7 +4,10 @@
 \alias{bulkUploadToRedshift}
 \title{Bulk upload initial data to Redshift using S3}
 \usage{
-bulkUploadToRedshift()
+bulkUploadToRedshift(connectionDetails)
+}
+\arguments{
+\item{connectionDetails}{A connectionDetails object created using \code{createConnectionDetails}}
 }
 \description{
 Bulk upload initial data to Redshift using S3

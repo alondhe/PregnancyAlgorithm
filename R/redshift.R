@@ -2,9 +2,10 @@
 #' Bulk upload initial data to Redshift using S3
 #' 
 #' @description Bulk upload initial data to Redshift using S3
+#' @param connectionDetails      A connectionDetails object created using \code{createConnectionDetails}
 #' 
 #' @export
-bulkUploadToRedshift <- function ()
+bulkUploadToRedshift <- function (connectionDetails)
 {
   # For Redshift fast inserts, requires S3 and cloudyr/aws.s3 library
   for (file in list.files(path = paste(system.file(package = 'PregnancyAlgorithm'), "csv/", sep = "/"), 
@@ -24,7 +25,10 @@ bulkUploadToRedshift <- function ()
                                            pathToFiles = Sys.getenv("AWS_OBJECT_KEY"),
                                            awsAccessKey = Sys.getenv("AWS_ACCESS_KEY_ID"), 
                                            awsSecretAccessKey = Sys.getenv("AWS_SECRET_ACCESS_KEY"))
+  
+  connection <- DatabaseConnector::connect(connectionDetails = connectionDetails)
   DatabaseConnector::executeSql(connection = connection, sql = sql)
+  DatabaseConnector::disconnect(connection = connection)
 }
 
 
@@ -70,8 +74,13 @@ checkAwsS3Connection <- function()
 {
   checkCredentials <- function()
   {
-    awsS3File <- aws.signature::read_credentials()
-    if (!is.null(awsS3File))
+    credsFile <- NULL
+    credsFile <- tryCatch({
+        aws.signature::read_credentials()
+      }, 
+      error = function(e) { })
+    
+    if (!is.null(credsFile))
     {
       aws.signature::use_credentials()
       

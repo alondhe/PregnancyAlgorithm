@@ -50,7 +50,7 @@ init <- function(connectionDetails, resultsDatabaseSchema, useMppUpload = FALSE)
     {
       if (checkAwsS3Connection())
       {
-        bulkUploadToRedshift()
+        bulkUploadToRedshift(connectionDetails)
       }
       else
       {
