@@ -74,13 +74,13 @@ checkAwsS3Connection <- function()
 {
   checkCredentials <- function()
   {
-    credsFile <- NULL
-    credsFile <- tryCatch({
+    awsS3File <- NULL
+    awsS3File <- tryCatch({
         aws.signature::read_credentials()
       }, 
       error = function(e) { })
     
-    if (!is.null(credsFile))
+    if (!is.null(awsS3File))
     {
       aws.signature::use_credentials()
       
