@@ -74,29 +74,29 @@ checkAwsS3Connection <- function()
 {
   checkCredentials <- function()
   {
-    awsS3File <- NULL
-    awsS3File <- tryCatch({
-        aws.signature::read_credentials()
-      }, 
-      error = function(e) { })
-    
-    if (!is.null(awsS3File))
-    {
-      aws.signature::use_credentials()
-      
-      if ("AWS_BUCKET_NAME" %in% names(awsS3File[["default"]]))
-      {
-        Sys.setenv(AWS_BUCKET_NAME = awsS3File[["default"]][["AWS_BUCKET_NAME"]])
-      }
-      if ("AWS_OBJECT_KEY" %in% names(awsS3File[["default"]]))
-      {
-        Sys.setenv(AWS_OBJECT_KEY = awsS3File[["default"]][["AWS_OBJECT_KEY"]])
-      }
-      if ("AWS_SSE_TYPE" %in% names(awsS3File[["default"]]))
-      {
-        Sys.setenv(AWS_SSE_TYPE = awsS3File[["default"]][["AWS_SSE_TYPE"]])
-      }
-    }
+    # awsS3File <- NULL
+    # awsS3File <- tryCatch({
+    #     aws.signature::read_credentials()
+    #   }, 
+    #   error = function(e) { })
+    # 
+    # if (!is.null(awsS3File))
+    # {
+    #   aws.signature::use_credentials()
+    #   
+    #   if ("AWS_BUCKET_NAME" %in% names(awsS3File[["default"]]))
+    #   {
+    #     Sys.setenv(AWS_BUCKET_NAME = awsS3File[["default"]][["AWS_BUCKET_NAME"]])
+    #   }
+    #   if ("AWS_OBJECT_KEY" %in% names(awsS3File[["default"]]))
+    #   {
+    #     Sys.setenv(AWS_OBJECT_KEY = awsS3File[["default"]][["AWS_OBJECT_KEY"]])
+    #   }
+    #   if ("AWS_SSE_TYPE" %in% names(awsS3File[["default"]]))
+    #   {
+    #     Sys.setenv(AWS_SSE_TYPE = awsS3File[["default"]][["AWS_SSE_TYPE"]])
+    #   }
+    # }
     
     if (Sys.getenv("AWS_ACCESS_KEY_ID") != "" && 
         Sys.getenv("AWS_SECRET_ACCESS_KEY") != "" &&
