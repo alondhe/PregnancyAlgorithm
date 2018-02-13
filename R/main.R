@@ -189,7 +189,7 @@ execute <- function(connectionDetails,
 
   # Steps 2 through 8
   steps <- c(2,3,5:8)
-  firstOutcomeEvent <- renderSql("@resultsDatabaseSchema.FirstOutcomeEvent",
+  firstOutcomeEvent <- SqlRender::renderSql("@resultsDatabaseSchema.FirstOutcomeEvent",
                                  resultsDatabaseSchema = resultsDatabaseSchema)$sql
   sqlBreak <- paste0("select count(*) from ", firstOutcomeEvent)
   for (step in steps)
