@@ -35,18 +35,10 @@
 #' @export
 init <- function(connectionDetails, resultsDatabaseSchema)
 {
-  connection <- DatabaseConnector::connect(connectionDetails)
-
-  # sql <- SqlRender::loadRenderTranslateSql(sqlFilename = "initTables.sql", 
-  #                                              packageName = "PregnancyAlgorithm", 
-  #                                              dbms = connectionDetails$dbms,
-  #                                              resultsDatabaseSchema = resultsDatabaseSchema)
-  # 
-  # DatabaseConnector::executeSql(connection = connection, sql = sql)
-
   for (file in list.files(path = paste(system.file(package = 'PregnancyAlgorithm'), "csv/", sep = "/"), 
                           full.names = TRUE)) {
     
+    connection <- DatabaseConnector::connect(connectionDetails)   
     df <- read.csv(file = file, header = TRUE, stringsAsFactors = FALSE)
     
     DatabaseConnector::insertTable(connection = connection, 
@@ -55,10 +47,10 @@ init <- function(connectionDetails, resultsDatabaseSchema)
                                    data = df, 
                                    dropTableIfExists = TRUE, 
                                    createTable = TRUE, useMppBulkLoad = TRUE)
-
+    DatabaseConnector::disconnect(connection)
   }
 
-  DatabaseConnector::disconnect(connection)
+  
   writeLines("Pregnancy algorithm tables initalized.")
 }
 
