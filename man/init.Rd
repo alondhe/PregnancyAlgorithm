@@ -4,15 +4,13 @@
 \alias{init}
 \title{Init Tables}
 \usage{
-init(connectionDetails, resultsDatabaseSchema, useMppUpload = FALSE)
+init(connectionDetails, resultsDatabaseSchema)
 }
 \arguments{
 \item{connectionDetails}{An R object of type ConnectionDetails (details for the function that contains server info, database type, optionally username/password, port)}
 
 \item{resultsDatabaseSchema}{Fully qualified name of database schema that we can write final results to. Default is cdmDatabaseSchema. 
 On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_results.dbo'.}
-
-\item{useMppUpload}{Should bulk-load techniques for Redshift or PDW be used if available?}
 }
 \value{
 none
@@ -21,5 +19,5 @@ none
 Init Tables
 }
 \details{
-Initalizes lookup and result tables for pregnancy algorithm.
+Initalizes lookup and result tables for pregnancy algorithm. Uses Bulk upload in InsertTable if possible.
 }

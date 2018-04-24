@@ -25,74 +25,41 @@
 
 #' Init Tables
 #'
-#' @details Initalizes lookup and result tables for pregnancy algorithm.
+#' @details Initalizes lookup and result tables for pregnancy algorithm. Uses Bulk upload in InsertTable if possible.
 #'
 #' @param connectionDetails        An R object of type ConnectionDetails (details for the function that contains server info, database type, optionally username/password, port)
 #' @param resultsDatabaseSchema    Fully qualified name of database schema that we can write final results to. Default is cdmDatabaseSchema. 
 #'                                 On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_results.dbo'.
-#' @param useMppUpload             Should bulk-load techniques for Redshift or PDW be used if available?
 #' @return none
 #' 
 #' @export
-init <- function(connectionDetails, resultsDatabaseSchema, useMppUpload = FALSE)
+init <- function(connectionDetails, resultsDatabaseSchema)
 {
   connection <- DatabaseConnector::connect(connectionDetails)
 
-  sql <- SqlRender::loadRenderTranslateSql(sqlFilename = "initTables.sql", 
-                                               packageName = "PregnancyAlgorithm", 
-                                               dbms = connectionDetails$dbms,
-                                               resultsDatabaseSchema = resultsDatabaseSchema)
-  
-  DatabaseConnector::executeSql(connection = connection, sql = sql)
-  if (useMppUpload)
-  {
-    if (connectionDetails$dbms == "redshift")
-    {
-      if (checkAwsS3Connection())
-      {
-        bulkUploadToRedshift(connectionDetails)
-      }
-      else
-      {
-        stop("Cannot bulk upload to Redshift, S3 credentials not set properly. Please set S3 credentials or set useMppUpload to FALSE.")
-      }
-    }
-    else if (Sys.info()["sysname"] == 'Windows' & connectionDetails$dbms == "pdw")
-    {
-      if (Sys.getenv("DWLOADER_PATH") == "")
-      {
-        break
-      }
-      for (file in list.files(path = paste(system.file(package = 'PregnancyAlgorithm'), "csv/", sep = "/"), 
-                              full.names = TRUE))
-      {
-        qName <- paste(resultsDatabaseSchema, gsub(pattern = ".csv", replacement = "", x = basename(file)), sep = ".")
-        #call command line
-        command <- paste0('"', Sys.getenv("DWLOADER_PATH"),'" -M append -b 2000000 ',
-                          '-i ', '"', file, '"', ' -T ', qName,' -R ', getwd(), '/dwloaderLog.txt ',
-                          '-t "," -r \r\n -fh 1 -D "yyyy-mm-dd" -E ',
-                          '-S ',connectionDetails$server,  #(S is connection)
-                          ifelse(!is.null(connectionDetails$user), paste0(' -U ',connectionDetails$user),' -W'),
-                          ifelse(!is.null(connectionDetails$password), paste0(' -P ',connectionDetails$password),'')
-        )
-        system(command, intern = FALSE,
-               ignore.stdout = FALSE, ignore.stderr = FALSE,
-               wait = TRUE, input = NULL, show.output.on.console = TRUE,
-               minimized = FALSE, invisible = TRUE)
-      }
-    }
-  }
-  else
-  {
-    sql <- SqlRender::loadRenderTranslateSql(sqlFilename = "inserts.sql", 
-                                                 packageName = "PregnancyAlgorithm", 
-                                                 dbms = connectionDetails$dbms,
-                                                 resultsDatabaseSchema = resultsDatabaseSchema)
-    DatabaseConnector::executeSql(connection = connection, sql = sql)
+  # sql <- SqlRender::loadRenderTranslateSql(sqlFilename = "initTables.sql", 
+  #                                              packageName = "PregnancyAlgorithm", 
+  #                                              dbms = connectionDetails$dbms,
+  #                                              resultsDatabaseSchema = resultsDatabaseSchema)
+  # 
+  # DatabaseConnector::executeSql(connection = connection, sql = sql)
+
+  for (file in list.files(path = paste(system.file(package = 'PregnancyAlgorithm'), "csv/", sep = "/"), 
+                          full.names = TRUE)) {
+    
+    df <- read.csv(file = file, header = TRUE, stringsAsFactors = FALSE)
+    
+    DatabaseConnector::insertTable(connection = connection, 
+                                   tableName = sprintf("%1s.%2s", resultsDatabaseSchema,
+                                                       tools::file_path_sans_ext(basename(file))), 
+                                   data = df, 
+                                   dropTableIfExists = TRUE, 
+                                   createTable = TRUE, useMppBulkLoad = TRUE)
+
   }
 
   DatabaseConnector::disconnect(connection)
-  writeLines("Pregnancy algoritm tables initalized.")
+  writeLines("Pregnancy algorithm tables initalized.")
 }
 
 #' Clean Tables
