@@ -47,7 +47,6 @@ init <- function(connectionDetails, resultsDatabaseSchema)
                                    data = df, 
                                    dropTableIfExists = TRUE, 
                                    createTable = TRUE, useMppBulkLoad = TRUE)
-    DatabaseConnector::disconnect(connection)
   }
 
   
