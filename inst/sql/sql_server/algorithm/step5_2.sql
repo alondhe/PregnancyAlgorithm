@@ -36,10 +36,14 @@ where rn=1 ;
 
 -- if so update raw events file to reflect new date
 UPDATE #pregnancy_events
-SET event_date = #FirstOutcomeEventSurg2.episode_end_date_revised
-FROM #FirstOutcomeEventSurg2
-WHERE  #FirstOutcomeEventSurg2.person_id=#pregnancy_events.person_id
-  and #FirstOutcomeEventSurg2.event_id=#pregnancy_events.event_id;
+SET B.event_date = A.episode_end_date_revised
+FROM #FirstOutcomeEventSurg2 A
+join #pregnancy_events B on A.person_id = B.person_id
+  and A.event_id = B.event_id;
+  
+--WHERE #FirstOutcomeEventSurg2.person_id = #pregnancy_events.person_id
+--  and #FirstOutcomeEventSurg2.event_id = #pregnancy_events.event_id;
+
 
 -- check if ECT is a rule-out diagnosis if there are active preg codes up to 6 weeks after
 select distinct a.person_id, a.event_id
