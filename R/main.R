@@ -35,6 +35,16 @@
 #' @export
 init <- function(connectionDetails, resultsDatabaseSchema)
 {
+  connection <- DatabaseConnector::connect(connectionDetails)
+  sql <- SqlRender::loadRenderTranslateSql(sqlFilename = "initTables.sql", 
+                                           packageName = "PregnancyAlgorithm", 
+                                           dbms = connectionDetails$dbms,
+                                           resultsDatabaseSchema = resultsDatabaseSchema)
+  
+  DatabaseConnector::executeSql(connection = connection, sql = sql)
+  DatabaseConnector::disconnect(connection = connection)
+  writeLines("Pregnancy episodes table created");
+  
   for (file in list.files(path = paste(system.file(package = 'PregnancyAlgorithm'), "csv/", sep = "/"), 
                           full.names = TRUE)) {
     
@@ -64,7 +74,6 @@ init <- function(connectionDetails, resultsDatabaseSchema)
 clean <- function(connectionDetails, resultsDatabaseSchema)
 {
   connection <- DatabaseConnector::connect(connectionDetails)
-  # Create tables that exist once per server
   sql <- SqlRender::loadRenderTranslateSql(sqlFilename = "clean.sql", 
                                                packageName = "PregnancyAlgorithm", 
                                                dbms = connectionDetails$dbms,

@@ -35,11 +35,20 @@ from
 where rn=1 ;
 
 -- if so update raw events file to reflect new date
+
 UPDATE #pregnancy_events
-SET B.event_date = A.episode_end_date_revised
-FROM #FirstOutcomeEventSurg2 A
-join #pregnancy_events B on A.person_id = B.person_id
-  and A.event_id = B.event_id;
+SET event_date = Q.episode_end_date_revised
+FROM 
+(
+  select A.person_id, A.event_id, A.episode_end_date_revised 
+  from #FirstOutcomeEventSurg2 A
+  join #pregnancy_events B on A.person_id = B.person_id
+    and A.event_id = B.event_id
+) Q
+where #pregnancy_events.person_id = Q.person_id
+ and #pregnancy_events.event_id = Q.event_id
+;
+
   
 --WHERE #FirstOutcomeEventSurg2.person_id = #pregnancy_events.person_id
 --  and #FirstOutcomeEventSurg2.event_id = #pregnancy_events.event_id;
