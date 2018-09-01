@@ -38,7 +38,7 @@ init <- function(connectionDetails, resultsDatabaseSchema)
   connection <- DatabaseConnector::connect(connectionDetails)
   sql <- SqlRender::loadRenderTranslateSql(sqlFilename = "initTables.sql", 
                                            packageName = "PregnancyAlgorithm", 
-                                           dbms = connectionDetails$dbms,
+                                           dbms = connectionDetails$dbms, warnOnMissingParameters = FALSE,
                                            resultsDatabaseSchema = resultsDatabaseSchema)
   
   DatabaseConnector::executeSql(connection = connection, sql = sql)
@@ -75,9 +75,10 @@ clean <- function(connectionDetails, resultsDatabaseSchema)
 {
   connection <- DatabaseConnector::connect(connectionDetails)
   sql <- SqlRender::loadRenderTranslateSql(sqlFilename = "clean.sql", 
-                                               packageName = "PregnancyAlgorithm", 
-                                               dbms = connectionDetails$dbms,
-                                               resultsDatabaseSchema = resultsDatabaseSchema)
+                                           packageName = "PregnancyAlgorithm", 
+                                           dbms = connectionDetails$dbms, 
+                                           warnOnMissingParameters = FALSE,
+                                           resultsDatabaseSchema = resultsDatabaseSchema)
   
   DatabaseConnector::executeSql(connection = connection, sql = sql)
   DatabaseConnector::disconnect(connection = connection)
@@ -107,6 +108,7 @@ execute <- function(connectionDetails,
     sql <- SqlRender::loadRenderTranslateSql(sqlFilename = sqlScript, 
                                              packageName = "PregnancyAlgorithm", 
                                              dbms = connectionDetails$dbms,
+                                             warnOnMissingParameters = FALSE,
                                              resultsDatabaseSchema = resultsDatabaseSchema,
                                              cdmDatabaseSchema = cdmDatabaseSchema)
     if (sqlOnly)
