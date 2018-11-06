@@ -4,13 +4,15 @@
 \alias{init}
 \title{Init Tables}
 \usage{
-init(connectionDetails, resultsDatabaseSchema)
+init(connectionDetails, resultsDatabaseSchema, useMppBulkLoad = FALSE)
 }
 \arguments{
 \item{connectionDetails}{An R object of type ConnectionDetails (details for the function that contains server info, database type, optionally username/password, port)}
 
 \item{resultsDatabaseSchema}{Fully qualified name of database schema that we can write final results to. Default is cdmDatabaseSchema. 
 On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_results.dbo'.}
+
+\item{useMppBulkLoad}{In the insertTable function, should we use MPP bulk loading? (Redshift and PDW only)}
 }
 \value{
 none

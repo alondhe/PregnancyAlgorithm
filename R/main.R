@@ -1,6 +1,6 @@
 # @file main
 #
-# Copyright 2017 Observational Health Data Sciences and Informatics
+# Copyright 2018 Observational Health Data Sciences and Informatics
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,11 +30,12 @@
 #' @param connectionDetails        An R object of type ConnectionDetails (details for the function that contains server info, database type, optionally username/password, port)
 #' @param resultsDatabaseSchema    Fully qualified name of database schema that we can write final results to. Default is cdmDatabaseSchema. 
 #'                                 On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_results.dbo'.
+#' @param useMppBulkLoad           In the insertTable function, should we use MPP bulk loading? (Redshift and PDW only)
 #' @return none
 #' 
 #' @export
-init <- function(connectionDetails, resultsDatabaseSchema)
-{
+init <- function(connectionDetails, resultsDatabaseSchema, useMppBulkLoad = FALSE) {
+  
   connection <- DatabaseConnector::connect(connectionDetails)
   sql <- SqlRender::loadRenderTranslateSql(sqlFilename = "initTables.sql", 
                                            packageName = "PregnancyAlgorithm", 
@@ -45,18 +46,19 @@ init <- function(connectionDetails, resultsDatabaseSchema)
   DatabaseConnector::disconnect(connection = connection)
   writeLines("Pregnancy episodes table created");
   
-  for (file in list.files(path = paste(system.file(package = 'PregnancyAlgorithm'), "csv/", sep = "/"), 
+  for (file in list.files(path = paste(system.file(package = 'PregnancyAlgorithm'), "csv", sep = "/"), 
                           full.names = TRUE)) {
     
     connection <- DatabaseConnector::connect(connectionDetails)   
-    df <- read.csv(file = file, header = TRUE, stringsAsFactors = FALSE)
+    df <- read.csv(file = file, header = TRUE, stringsAsFactors = FALSE, as.is = TRUE)
+    df[is.na(df)] <- ""
     
     DatabaseConnector::insertTable(connection = connection, 
                                    tableName = sprintf("%1s.%2s", resultsDatabaseSchema,
                                                        tools::file_path_sans_ext(basename(file))), 
                                    data = df, 
                                    dropTableIfExists = TRUE, 
-                                   createTable = TRUE, useMppBulkLoad = TRUE)
+                                   createTable = TRUE, useMppBulkLoad = useMppBulkLoad)
   }
 
   
@@ -71,8 +73,8 @@ init <- function(connectionDetails, resultsDatabaseSchema)
 #' @return none
 #'
 #' @export
-clean <- function(connectionDetails, resultsDatabaseSchema)
-{
+clean <- function(connectionDetails, resultsDatabaseSchema) {
+  
   connection <- DatabaseConnector::connect(connectionDetails)
   sql <- SqlRender::loadRenderTranslateSql(sqlFilename = "clean.sql", 
                                            packageName = "PregnancyAlgorithm", 
@@ -101,48 +103,43 @@ clean <- function(connectionDetails, resultsDatabaseSchema)
 execute <- function(connectionDetails, 
                     cdmDatabaseSchema, 
                     resultsDatabaseSchema = cdmDatabaseSchema, 
-                    sqlOnly = FALSE)
-{
-  executeSqlSteps <- function(sqlScript)
-  {
+                    sqlOnly = FALSE) {
+  
+  executeSqlSteps <- function(sqlScript) {
     sql <- SqlRender::loadRenderTranslateSql(sqlFilename = sqlScript, 
                                              packageName = "PregnancyAlgorithm", 
                                              dbms = connectionDetails$dbms,
                                              warnOnMissingParameters = FALSE,
                                              resultsDatabaseSchema = resultsDatabaseSchema,
                                              cdmDatabaseSchema = cdmDatabaseSchema)
-    if (sqlOnly)
-    {
+    if (sqlOnly) {
       write(x = sql, file = paste("output", basename(sqlScript), sep = "/"), append = TRUE)
-    }
-    else
-    {
+    } else {
       DatabaseConnector::executeSql(connection = connection, sql = sql)
     }
   }
 
-  executeLoopedSql <- function(stepNum, sqlBreak, sqlBreakResult, sqlLoopPreBreak, sqlLoopPostBreak, tablesToClean = c())
-  {
-    while (1)
-    {
+  executeLoopedSql <- function(stepNum, 
+                               sqlBreak, 
+                               sqlBreakResult, 
+                               sqlLoopPreBreak, 
+                               sqlLoopPostBreak, 
+                               tablesToClean = c()) {
+    while (1) {
       executeSqlSteps(sqlLoopPreBreak)
-      if (DatabaseConnector::querySql(connection, sqlBreak) == sqlBreakResult)
-      {
+      if (DatabaseConnector::querySql(connection, sqlBreak) == sqlBreakResult) {
         break
       }
       executeSqlSteps(sqlLoopPostBreak)
     }
-    for (table in tablesToClean)
-    {
+    for (table in tablesToClean) {
       objName <- ifelse(startsWith(table, "#"), paste0("tempdb..", table), table)
       sql <- paste0("IF OBJECT_ID('", objName, "', 'U') IS NOT NULL\r\ndrop table ", table, ";")
       sql <- SqlRender::translateSql(sql = sql, targetDialect = connectionDetails$dbms)$sql
-      if (sqlOnly)
-      {
+      if (sqlOnly) {
         write(x = sql, file = paste("output", basename(sqlScript), sep = "/"), append = TRUE)
       }
-      else
-      {
+      else {
         DatabaseConnector::executeSql(connection = connection, sql = sql)
       }
     }
@@ -161,8 +158,7 @@ execute <- function(connectionDetails,
   firstOutcomeEvent <- SqlRender::renderSql("@resultsDatabaseSchema.FirstOutcomeEvent",
                                  resultsDatabaseSchema = resultsDatabaseSchema)$sql
   sqlBreak <- paste0("select count(*) from ", firstOutcomeEvent)
-  for (step in steps)
-  {
+  for (step in steps) {
     writeLines(paste0("Running Step ", step))
     executeSqlSteps(paste0("algorithm/step", step, "_0.sql"))
     executeLoopedSql(stepNum = step, sqlBreak = sqlBreak,

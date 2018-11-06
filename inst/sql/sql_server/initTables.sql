@@ -10,10 +10,10 @@ CREATE TABLE @resultsDatabaseSchema.pregnancy_episodes
 	PERSON_ID bigint not null,
 	EPISODE_START_DATE datetime not null,
 	EPISODE_END_DATE datetime not null,
-	START_METHOD nvarchar(255) not null,
-	ORIGINAL_OUTCOME nvarchar(255) not null,
+	START_METHOD varchar(255) not null,
+	ORIGINAL_OUTCOME varchar(255) not null,
 	EPISODE int not null,
-	OUTCOME nvarchar(255) not null,
+	OUTCOME varchar(255) not null,
 	EPISODE_LENGTH int
 )
 ;

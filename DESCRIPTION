@@ -1,7 +1,7 @@
 Package: PregnancyAlgorithm
 Type: Package
 Title: Pregnancy Algorithm
-Version: 0.1.0
+Version: 0.2.0
 Author: Amy Matcho [aut, cre],
         Chris Knoll [aut, cre],
         Ajit Londhe [aut]
@@ -16,4 +16,4 @@ Depends:
 Imports:
     aws.s3
 Roxygen: list(wrap = TRUE)
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0
