@@ -51,7 +51,6 @@ init <- function(connectionDetails, resultsDatabaseSchema, useMppBulkLoad = FALS
     
     connection <- DatabaseConnector::connect(connectionDetails)   
     df <- read.csv(file = file, header = TRUE, stringsAsFactors = FALSE, as.is = TRUE)
-    df[is.na(df)] <- "NA"
     
     DatabaseConnector::insertTable(connection = connection, 
                                    tableName = sprintf("%1s.%2s", resultsDatabaseSchema,
