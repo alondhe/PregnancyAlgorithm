@@ -15,13 +15,13 @@ from
 	select b.category, b.gest_value, person_id, a.OBSERVATION_CONCEPT_ID as CONCEPT_ID, observation_date as start_date, 'Obs' as type, value_as_string, value_as_number
 	from @cdmDatabaseSchema.observation a
 	join @resultsDatabaseSchema.pregnancy_concepts b on a.OBSERVATION_CONCEPT_ID=b.concept_id
-	where b.data_value = 'NA' or (b.data_value = a.value_as_string)
+	where b.data_value = 'N/A' or (b.data_value = a.value_as_string)
 
 	union all
 	select b.category, b.gest_value, person_id, a.MEASUREMENT_CONCEPT_ID as CONCEPT_ID, measurement_date as start_date, 'Meas' as type, value_source_value, value_as_number
 	from @cdmDatabaseSchema.measurement a
 	join @resultsDatabaseSchema.pregnancy_concepts b on a.measurement_CONCEPT_ID=b.concept_id
-	where b.data_value = 'NA' or (b.data_value = a.value_source_value)
+	where b.data_value = 'N/A' or (b.data_value = a.value_source_value)
 ) a
 ;
 
